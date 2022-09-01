@@ -1,0 +1,150 @@
+{- small stdlib -}
+
+int now() asm "NOW";
+
+int slice_hash(slice s) asm "HASHSU";
+int check_signature(int hash, slice signature, int public_key) asm "CHKSIGNU";
+
+cell get_data() asm "c4 PUSH";
+() set_data(cell c) impure asm "c4 POP";
+
+() accept_message() impure asm "ACCEPT";
+() send_raw_message(cell msg, int mode) impure asm "SENDRAWMSG";
+
+int slice_bits(slice s) asm "SBITS";
+int slice_refs(slice s) asm "SREFS";
+int builder_bits(builder b) asm "BBITS";
+
+(slice, int) ~load_uint(slice s, int len) asm(-> 1 0) "LDUX";
+(slice, cell) load_ref(slice s) asm(-> 1 0) "LDREF";
+(slice, slice) load_msg_addr(slice s) asm(-> 1 0) "LDMSGADDR";
+cell preload_ref(slice s) asm "PLDREF";
+
+builder begin_cell() asm "NEWC";
+builder store_ref(builder b, cell c) asm(c b) "STREF";
+builder store_slice(builder b, slice s) asm "STSLICER";
+builder store_varuint(builder b, int x) asm "STVARUINT16";
+cell end_cell(builder b) asm "ENDC";
+
+slice begin_parse(cell c) asm "CTOS";
+() end_parse(slice s) impure asm "ENDS";
+
+
+{- method ids -}
+
+;; sendTransaction(address,uint128,bool,uint8,cell)()v2
+int is_method_send_transaction(int function_id) asm "0x4cee646c PUSHINT EQUAL";
+
+;; sendTransactionRaw(uint8,cell)()v2
+int is_method_send_transaction_raw(int function_id) asm "0x169e3e11 PUSHINT EQUAL";
+
+
+{- helpers -}
+
+;; Returns (body, (stored_timestamp, stored_pubkey, function id))
+(slice, (int, int, int)) ~process_headers(slice body) inline {
+    ;; Read signature
+    int has_signature? = body~load_uint(1);
+    throw_if(58, has_signature? == 0);
+    slice signature = body~load_bits(512);
+
+    ;; Load persistent data
+    var ds = get_data().begin_parse();
+    (int stored_pubkey, int stored_timestamp) = (ds~load_uint(256), ds.preload_uint(64));
+
+    ;; Copy message slice to check if later
+    slice cs = body;
+
+    ;; Read `pubkey` header
+    int has_pubkey? = cs~load_uint(1);
+    if (has_pubkey? != 0) {
+        int msg_pubkey = cs~load_uint(256);
+        throw_unless(100, msg_pubkey == stored_pubkey);
+    }
+
+    ;; Check signature
+    throw_unless(40, check_signature(slice_hash(body), signature, stored_pubkey));
+
+    ;; Read `time` and `expire` headers
+    (int msg_timestamp, int expire_at) = (cs~load_uint(64), cs~load_uint(32));
+
+    ;; Check `expire` header
+    throw_if(57, expire_at <= now());
+
+    ;; Check `time` header
+    throw_if(52, (msg_timestamp <= stored_timestamp) | (msg_timestamp > (now() + 1800) * 1000));
+
+    ;; Read function id
+    int function_id = cs~load_uint(32);
+
+    return (cs, (stored_timestamp, stored_pubkey, function_id));
+}
+
+{- entries -}
+
+() recv_internal(slice in_msg) impure {
+    ;; do nothing for internal messages
+}
+
+() recv_external(slice body) impure {
+    (int stored_timestamp, int stored_pubkey, int function_id) = body~process_headers();
+    if (function_id.is_method_send_transaction()) {
+        slice args = body.preload_ref().begin_parse();
+        (slice address, int amount, int bounce, int flags, cell payload) = (
+                args~load_msg_addr(),
+                args~load_uint(128),
+                args~load_uint(1),
+                args~load_uint(8),
+                args.preload_ref()
+        );
+
+        accept_message();
+
+        ;; CommonMsgInfo (part 1)
+        ;; 0 1 x 0 00 = 0x10 (bounce:0) or 0x18 (bounce:1)
+        ;; \ \ \ \ ^^ src:addr_none$00
+        ;;  \ \ \ * bounced:Bool
+        ;;   \ \ * bounce:Bool
+        ;;    \ * ihr_disabled:Bool
+        ;;     * int_msg_info$0
+
+        ;; CommonMsgInfo (part 2)
+        ;; 1 bit - amount (empty currency collection extra)
+        ;; 4 bits - ihr_fee
+        ;; 4 bits - fwd_fee
+        ;; 64 bits - created_lt
+        ;; 32 bits - created_at
+        ;; ---
+        ;; 1 bits - empty state init
+
+        var msg = begin_cell()
+                .store_uint(0x10 | (bounce << 3), 6)
+                .store_slice(address)
+                .store_varuint(amount)
+                .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1);
+
+        slice ps = payload.begin_parse();
+        var msg = (msg.builder_bits() + ps.slice_bits() < 1023)
+                ? msg.store_uint(0, 1).store_slice(ps)
+                : msg.store_uint(1, 1).store_ref(payload);
+
+        send_raw_message(msg.end_cell(), flags);
+    } elseif (function_id.is_method_send_transaction_raw()) {
+        accept_message();
+
+        body~touch();
+        while (body.slice_refs()) {
+            var mode = body~load_uint(8);
+            send_raw_message(body~load_ref(), mode);
+        }
+        body.end_parse();
+    } else {
+        throw(60); ;; unknown function id
+    }
+
+    ;; Store persistent data
+    set_data(begin_cell()
+            .store_uint(stored_pubkey, 256)
+            .store_uint(stored_timestamp, 64)
+            .end_cell());
+}
