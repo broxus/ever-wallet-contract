@@ -123,7 +123,7 @@ const WalletAbi = {
 const wallet = new ever.Contract(WalletAbi, walletAddress);
 
 const walletState = await ever.getFullContractState({address: wallet.address});
-const stateInit = walletState?.isDeployed === true ? stateInit : undefined;
+const stateInit = !walletState?.isDeployed ? stateInit : undefined;
 
 const {transaction} = await wallet.methods
   .sendTransaction({
