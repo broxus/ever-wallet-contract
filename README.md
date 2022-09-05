@@ -2,7 +2,7 @@
 
 > WIP
 
-The simplest yet powerful ABI compliant wallet.
+The simplest yet powerful ABI 2.3 compliant wallet.
 
 * Doesn't require deployment.
 * The code takes only ~232 bytes and 6 cells.
@@ -12,7 +12,7 @@ The simplest yet powerful ABI compliant wallet.
 <details><summary><b>Code</b></summary>
 <p>
 
-`te6cckEBBgEA+AABFP8A9KQT9LzyyAsBAgEgAgMABNIwAt7ycdcBAcAA8nqDCNcY7UTQgwfXAdcLPyJx1wEBwwCagwfXAVETuvLgZN4D+QFUEEL5EPKoAYBA1wGAINcBAfgju/J5UxO7+COBBwiggQPoqBO8ErHydIAg1wFVICCCEEzuZGy64w8ByMv/yz/J7VQEBQCYMALXTND6QIMG1wFx1wF41wHXTPgAcIAQBKoCFLHIywVQBc8WUAP6AstpItAhzzEh10mghAm5mDNwAcsAWM8WlzBxAcsAEsziyQH7AAA+ghAWnj4Ruo4R+AACkyDXSpd41wHUAvsA6NGTMvI84tZiMa0=`
+`te6cckEBBgEA+wABFP8A9KQT9LzyyAsBAgEgAgMABNIwAuTycdcBAcAA8nqDCNcY7UTQgwfXAdcLP8j4KM8WI88WyfkAA3HXAQHDAJqDB9cBURO68uBk3oBA1wGAINcBgCDXAVQWdfkQ8qj4I7vyeVy++COBBwiggQPoqBK8sfJ0AiCCEEzuZGy64w8ByMv/yz/J7VQEBQCYMALXTND6QIMG1wFx1wF41wHXTPgAcIAQBKoCFLHIywVQBc8WUAP6AstpItAhzzEh10mghAm5mDNwAcsAWM8WlzBxAcsAEsziyQH7AAA+ghAWnj4Ruo4R+AACkyDXSpd41wHUAvsA6NGTMvI84tiWlkU=`
 
 </p>
 </details>
@@ -23,7 +23,7 @@ The simplest yet powerful ABI compliant wallet.
 ```
 {
   "ABI version": 2,
-  "version": "2.2",
+  "version": "2.3",
   "header": ["pubkey", "time", "expire"],
   "functions": [
     {
@@ -75,7 +75,7 @@ npm run test
 #### 1. Compute state init and address
 
 ```typescript
-const WalletCode = 'te6cckEBBgEA+AABFP8A9KQT9LzyyAsBAgEgAgMABNIwAt7ycdcBAcAA8nqDCNcY7UTQgwfXAdcLPyJx1wEBwwCagwfXAVETuvLgZN4D+QFUEEL5EPKoAYBA1wGAINcBAfgju/J5UxO7+COBBwiggQPoqBO8ErHydIAg1wFVICCCEEzuZGy64w8ByMv/yz/J7VQEBQCYMALXTND6QIMG1wFx1wF41wHXTPgAcIAQBKoCFLHIywVQBc8WUAP6AstpItAhzzEh10mghAm5mDNwAcsAWM8WlzBxAcsAEsziyQH7AAA+ghAWnj4Ruo4R+AACkyDXSpd41wHUAvsA6NGTMvI84tZiMa0=';
+const WalletCode = 'te6cckEBBgEA+wABFP8A9KQT9LzyyAsBAgEgAgMABNIwAuTycdcBAcAA8nqDCNcY7UTQgwfXAdcLP8j4KM8WI88WyfkAA3HXAQHDAJqDB9cBURO68uBk3oBA1wGAINcBgCDXAVQWdfkQ8qj4I7vyeVy++COBBwiggQPoqBK8sfJ0AiCCEEzuZGy64w8ByMv/yz/J7VQEBQCYMALXTND6QIMG1wFx1wF41wHXTPgAcIAQBKoCFLHIywVQBc8WUAP6AstpItAhzzEh10mghAm5mDNwAcsAWM8WlzBxAcsAEsziyQH7AAA+ghAWnj4Ruo4R+AACkyDXSpd41wHUAvsA6NGTMvI84tiWlkU=';
 
 const {boc: data} = await ever.packIntoCell({
   structure: [
@@ -102,7 +102,7 @@ const address = `0:${tvcHash}`;
 ```typescript
 const WalletAbi = {
   "ABI version": 2,
-  "version": "2.2",
+  "version": "2.3",
   "header": ["pubkey", "time", "expire"],
   "functions": [
     {

@@ -1,7 +1,9 @@
 {- small stdlib -}
 
 int now() asm "NOW";
+slice my_address() asm "MYADDR";
 
+int cell_hash(cell c) asm "HASHCU";
 int slice_hash(slice s) asm "HASHSU";
 int check_signature(int hash, slice signature, int public_key) asm "CHKSIGNU";
 
@@ -52,32 +54,30 @@ int is_method_send_transaction_raw(int function_id) asm "0x169e3e11 PUSHINT EQUA
     var ds = get_data().begin_parse();
     (int stored_pubkey, int stored_timestamp) = (ds~load_uint(256), ds.preload_uint(64));
 
-    ;; Copy message slice to check if later
-    slice cs = body;
+    ;; Prepend address to the body
+    cell body_with_address = begin_cell().store_slice(my_address()).store_slice(body).end_cell();
+    int body_hash = cell_hash(body_with_address);
 
     ;; Read `pubkey` header
-    int has_pubkey? = cs~load_uint(1);
+    int has_pubkey? = body~load_uint(1);
     if (has_pubkey? != 0) {
-        int msg_pubkey = cs~load_uint(256);
+        int msg_pubkey = body~load_uint(256);
         throw_unless(100, msg_pubkey == stored_pubkey);
     }
 
-    ;; Check signature
-    throw_unless(40, check_signature(slice_hash(body), signature, stored_pubkey));
+    ;; Read `time`, `expire` headers and function id
+    (int msg_timestamp, int expire_at, int function_id) = (body~load_uint(64), body~load_uint(32), body~load_uint(32));
 
-    ;; Read `time` and `expire` headers
-    (int msg_timestamp, int expire_at) = (cs~load_uint(64), cs~load_uint(32));
+    ;; Check signature
+    throw_unless(40, check_signature(body_hash, signature, stored_pubkey));
 
     ;; Check `expire` header
     throw_if(57, expire_at <= now());
 
     ;; Check `time` header
-    throw_if(52, (msg_timestamp <= stored_timestamp) | (msg_timestamp > (now() + 1800) * 1000));
+    throw_if(52, (stored_timestamp >= msg_timestamp) | (msg_timestamp > (now() + 1800) * 1000));
 
-    ;; Read function id
-    int function_id = cs~load_uint(32);
-
-    return (cs, (stored_timestamp, stored_pubkey, function_id));
+    return (body, (stored_timestamp, stored_pubkey, function_id));
 }
 
 {- entries -}
@@ -115,7 +115,7 @@ int is_method_send_transaction_raw(int function_id) asm "0x169e3e11 PUSHINT EQUA
         ;; 64 bits - created_lt
         ;; 32 bits - created_at
         ;; ---
-        ;; 1 bits - empty state init
+        ;; 1 bit - empty state init
 
         var msg = begin_cell()
                 .store_uint(0x10 | (bounce << 3), 6)

@@ -1,6 +1,6 @@
 export default {
   'ABI version': 2,
-  version: '2.2',
+  version: '2.3',
   header: ['pubkey', 'time', 'expire'],
   functions: [
     {

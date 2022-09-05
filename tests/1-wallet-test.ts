@@ -195,7 +195,7 @@ describe('Test wallet contract', async function () {
   it('Empty raw transfer', async function () {
     const WalletAbi0 = {
       'ABI version': 2,
-      version: '2.2',
+      version: '2.3',
       header: ['pubkey', 'time', 'expire'],
       functions: [
         {
@@ -220,7 +220,7 @@ describe('Test wallet contract', async function () {
   it('Raw transfer with multiple messages', async function () {
     const WalletAbi4 = {
       'ABI version': 2,
-      version: '2.2',
+      version: '2.3',
       header: ['pubkey', 'time', 'expire'],
       functions: [
         {
