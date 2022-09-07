@@ -1,7 +1,5 @@
 ## EVER Wallet contract
 
-> WIP
-
 The simplest yet powerful ABI 2.3 compliant wallet.
 
 * Doesn't require deployment.
@@ -57,6 +55,8 @@ The simplest yet powerful ABI 2.3 compliant wallet.
 
 </p>
 </details>
+
+**Code hash:** `3ba6528ab2694c118180aa3bd10dd19ff400b909ab4dcf58fc69925b2c7b12a6`
 
 ### How to build and test
 
