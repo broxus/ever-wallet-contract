@@ -1,3 +1,8 @@
+;; The simplest  wallet
+;; Most important concepts:
+;;   Doesn't require deployment.
+;;   Supports transfers with state init.
+;;   Can send up to 4 messages at the same time.
 {- small stdlib -}
 
 int now() asm "NOW";
@@ -43,6 +48,9 @@ int is_method_send_transaction_raw(int function_id) asm "0x169e3e11 PUSHINT EQUA
 
 {- helpers -}
 
+;; Decodes message body
+;; Check signature
+;; Replay protection logic
 ;; Returns (body, (stored_timestamp, stored_pubkey, function id))
 (slice, (int, int, int)) ~process_headers(slice body) inline {
     ;; Read signature
@@ -86,6 +94,7 @@ int is_method_send_transaction_raw(int function_id) asm "0x169e3e11 PUSHINT EQUA
     ;; do nothing for internal messages
 }
 
+;; Check function id and send up to 4 transactions
 () recv_external(slice body) impure {
     (int stored_timestamp, int stored_pubkey, int function_id) = body~process_headers();
     if (function_id.is_method_send_transaction()) {

@@ -157,3 +157,13 @@ Common combinations:
 * Regular transfer: **`3`** (pay fees separately and ignore action phase errors)
 * Send all balance: **`130`** (attach all the remaining balance and ignore action phase errors)
 * Send all balance and destroy account: **`162`** (attach all the remaining balance, destroy account and ignore action phase errors)
+
+### Errors
+
+* 40 - External inbound message has an invalid signature.
+* 52 - Replay protection exception.
+* 57 - External inbound message is expired.
+* 58 - External inbound message has no signature but has public key.
+* 60 - Inbound message has wrong function id.
+* 100 - Message sender is not a custodian.
+
