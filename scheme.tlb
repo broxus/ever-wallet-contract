@@ -19,8 +19,9 @@ headers#_ signature:(Maybe bits512) msg_pubkey:(Maybe bits256)
 _ ^[ address:MsgAddressInt amount:uint128 bounce:Bool
     flags:uint8 payload:^Cell ] = SendTransaction;
 
-_ {n:#} {n >= 0} {n <= 4} send_modes:(uint (n * 8))
-    messages:(n * ^Cell) = SendTransactionRaw n;
+_ send_mode:uint8 message:^Cell = Msg;
+
+_ {n:#} {n >= 0} {n <= 4} messages:(n * Msg) = SendTransactionRaw n;
 
 send_transaction#4cee646c _:SendTransaction = Method 0;
 send_transaction_raw#169e3e11 {n:#} _:(SendTransactionRaw n) = Method n;
