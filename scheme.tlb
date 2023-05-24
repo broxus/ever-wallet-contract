@@ -19,10 +19,10 @@ headers#_ signature:(Maybe bits512) msg_pubkey:(Maybe bits256)
 _ ^[ address:MsgAddressInt amount:uint128 bounce:Bool
     flags:uint8 payload:^Cell ] = SendTransaction;
 
-// { n >= 0 } { n <= 4 } _:(n * uint8) _:(n * ^Cell)
-_ Any = SendTransactionRaw;
+_ {n:#} {n >= 0} {n <= 4} send_modes:(uint (n * 8))
+    messages:(n * ^Cell) = SendTransactionRaw n;
 
-send_transaction#4cee646c _:SendTransaction = Method;
-send_transaction_raw#169e3e11 _:SendTransactionRaw = Method;
+send_transaction#4cee646c _:SendTransaction = Method 0;
+send_transaction_raw#169e3e11 {n:#} _:(SendTransactionRaw n) = Method n;
 
-ext_msg_body#_ h:Headers m:Method = ExtMsgBody;
+ext_msg_body#_ {n:#} h:Headers m:(Method n) = ExtMsgBody n;
