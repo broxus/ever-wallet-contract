@@ -1,0 +1,28 @@
+bool_false$0 = Bool;
+bool_true$1 = Bool;
+nothing$0 {X:Type} = Maybe X;
+just$1 {X:Type} value:X = Maybe X;
+
+addr_none$00 = MsgAddressExt;
+addr_extern$01 len:(## 9) external_address:(bits len)
+             = MsgAddressExt;
+anycast_info$_ depth:(#<= 30) { depth >= 1 }
+   rewrite_pfx:(bits depth) = Anycast;
+addr_std$10 anycast:(Maybe Anycast)
+   workchain_id:int8 address:bits256  = MsgAddressInt;
+addr_var$11 anycast:(Maybe Anycast) addr_len:(## 9)
+   workchain_id:int32 address:(bits addr_len) = MsgAddressInt;
+
+headers#_ signature:(Maybe bits512) msg_pubkey:(Maybe bits256)
+          msg_timestamp:uint64 expire_at:uint32 = Headers;
+
+_ ^[ address:MsgAddressInt amount:uint128 bounce:Bool
+    flags:uint8 payload:^Cell ] = SendTransaction;
+
+// { n >= 0 } { n <= 4 } _:(n * uint8) _:(n * ^Cell)
+_ Any = SendTransactionRaw;
+
+send_transaction#4cee646c _:SendTransaction = Method;
+send_transaction_raw#169e3e11 _:SendTransactionRaw = Method;
+
+ext_msg_body#_ h:Headers m:Method = ExtMsgBody;
